@@ -1,4 +1,3 @@
-import pdf from "pdf-parse";
 import mammoth from "mammoth";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
@@ -29,8 +28,10 @@ export async function extractTextFromPDF(
   buffer: Buffer
 ): Promise<ProcessedDocument> {
   try {
+    // Dynamically import pdf-parse ONLY when this function is called
+    const pdf = (await import("pdf-parse")).default;
     const data = await pdf(buffer);
-    
+
     return {
       text: data.text,
       metadata: {
@@ -54,7 +55,7 @@ export async function extractTextFromDOCX(
 ): Promise<ProcessedDocument> {
   try {
     const result = await mammoth.extractRawText({ buffer });
-    
+
     return {
       text: result.value,
       metadata: {
@@ -77,7 +78,7 @@ export async function extractTextFromTXT(
 ): Promise<ProcessedDocument> {
   try {
     const text = buffer.toString("utf-8");
-    
+
     return {
       text,
       metadata: {
