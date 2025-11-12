@@ -147,7 +147,20 @@ export async function queryVectors(
         .map((match) => ({
           id: match.id,
           score: match.score || 0,
-          metadata: match.metadata as VectorMetadata,
+          metadata: (() => {
+  const md = match.metadata || {};
+  return {
+    documentId: String(md.documentId || ''),
+    userId: String(md.userId || ''),
+    chunkIndex: Number(md.chunkIndex || 0),
+    content: String(md.content || ''),
+    filename: String(md.filename || ''),
+    fileType: String(md.fileType || ''),
+    timestamp: String(md.timestamp || new Date().toISOString()),
+  };
+})(),
+
+
         })) || []
     );
   } catch (error) {

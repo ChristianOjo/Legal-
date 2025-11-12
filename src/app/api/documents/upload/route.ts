@@ -10,23 +10,18 @@ import {
 import { generateEmbeddingsBatch } from "@/lib/embeddings";
 import { upsertVectors } from "@/lib/vector-store";
 
-export const config = {
-  api: {
-    bodyParser: false, // Disable body parsing for file uploads
-  },
-};
+// Next.js 14+ route exports
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
     const userId = session.user.id;
 
-    // Parse form data
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -34,7 +29,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Validate file
     const maxSize = 10 * 1024 * 1024; // 10MB
     if (file.size > maxSize) {
       return NextResponse.json(
@@ -56,16 +50,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Convert file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create document record in database
     const { data: document, error: dbError } = await supabaseAdmin
       .from("documents")
       .insert({
         user_id: userId,
-        title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+        title: file.name.replace(/\.[^/.]+$/, ""),
         filename: file.name,
         file_type: file.type,
         file_size: file.size,
@@ -82,7 +74,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Process document asynchronously
     processDocumentAsync(document.id, userId, buffer, file.name, file.type);
 
     return NextResponse.json(
@@ -99,16 +90,13 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("Error uploading document:", error);
-    return NextResponse.json(
-      { error: "Failed to upload document" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to upload document" }, { status: 500 });
   }
 }
 
-/**
- * Process document asynchronously
- */
+// --------------------
+// Async document processing
+// --------------------
 async function processDocumentAsync(
   documentId: string,
   userId: string,
@@ -117,32 +105,18 @@ async function processDocumentAsync(
   fileType: string
 ) {
   try {
-    // Extract text from document
     const processed = await processDocument(buffer, filename, fileType);
-
-    // Clean legal text
     const cleanedText = cleanLegalText(processed.text);
-
-    // Chunk document
     const chunks = await chunkDocument(cleanedText, filename, {
       chunkSize: 1000,
       chunkOverlap: 200,
     });
 
-    // Generate embeddings for chunks
     const texts = chunks.map((chunk) => chunk.content);
     const embeddings = await generateEmbeddingsBatch(texts);
 
-    // Store in Pinecone
-    const vectorIds = await upsertVectors(
-      embeddings,
-      chunks,
-      documentId,
-      userId,
-      fileType
-    );
+    const vectorIds = await upsertVectors(embeddings, chunks, documentId, userId, fileType);
 
-    // Store chunks in database
     const chunkRecords = chunks.map((chunk, index) => ({
       document_id: documentId,
       chunk_index: index,
@@ -151,14 +125,12 @@ async function processDocumentAsync(
       vector_id: vectorIds[index],
     }));
 
-    // Insert chunks in batches
     const batchSize = 100;
     for (let i = 0; i < chunkRecords.length; i += batchSize) {
       const batch = chunkRecords.slice(i, i + batchSize);
       await supabaseAdmin.from("document_chunks").insert(batch);
     }
 
-    // Update document status
     await supabaseAdmin
       .from("documents")
       .update({
@@ -175,14 +147,11 @@ async function processDocumentAsync(
   } catch (error) {
     console.error(`Error processing document ${documentId}:`, error);
 
-    // Update document status to failed
     await supabaseAdmin
       .from("documents")
       .update({
         status: "failed",
-        metadata: {
-          error: error instanceof Error ? error.message : "Unknown error",
-        },
+        metadata: { error: error instanceof Error ? error.message : "Unknown error" },
       })
       .eq("id", documentId);
   }
