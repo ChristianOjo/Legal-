@@ -6,7 +6,7 @@ export default function HomePage() {
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] text-center">
       <div className="max-w-3xl p-8 bg-white rounded-3xl shadow-2xl card-shadow">
         <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
-          Manus Legal AI Advisor
+          Celestius Legal AI Advisor
         </h1>
         <p className="text-xl text-gray-600 mb-10">
           Your personal AI assistant for instant legal document analysis and expert advice.

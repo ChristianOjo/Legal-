@@ -56,7 +56,7 @@ export default function RegisterPage() {
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
           <p className="mt-2 text-sm text-gray-500">
-            Start your free trial with the Manus Legal AI Advisor
+            Start your free trial with the Celestius Legal AI Advisor
           </p>
         </div>
 

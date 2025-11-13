@@ -100,7 +100,7 @@ export default function ChatPage() {
           {
             id: 1,
             role: "assistant",
-            content: `Hello! I'm your Manus Legal AI Advisor. I've loaded the document "${doc.filename}". How can I help you analyze it?`,
+            content: `Hello! I'm your Celestius Legal AI Advisor. I've loaded the document "${doc.filename}". How can I help you analyze it?`,
           },
         ]);
       }
