@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { supabaseClient } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabase";
 import { compare } from "bcryptjs";
 
 // This is the NextAuth configuration file.
@@ -20,7 +20,7 @@ const authOptions = {
         }
 
         // 1. Find the user in the database
-        const { data: user, error } = await supabaseClient
+        const { data: user, error } = await supabaseAdmin
           .from("users")
           .select("id, email, password_hash")
           .eq("email", credentials.email)
