@@ -32,10 +32,10 @@ const DocumentList = ({
 }) => {
   if (documents.length === 0) {
     return (
-      <div className="text-center py-12 border border-dashed border-gray-300 rounded-xl mt-8 bg-white/50 backdrop-blur-sm">
-        <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900">No Documents Uploaded</h3>
-        <p className="mt-1 text-sm text-gray-500">
+      <div className="text-center py-12 border border-dashed border-border rounded-xl mt-8 bg-card/50 backdrop-blur-sm">
+        <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-foreground">No Documents Uploaded</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
           Upload a legal document to get started with your AI advisor.
         </p>
       </div>
@@ -47,15 +47,15 @@ const DocumentList = ({
       {documents.map((doc) => (
         <div
           key={doc.id}
-          className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-200 card-shadow transition-all hover:shadow-md"
+          className="flex items-center justify-between p-4 bg-card rounded-xl border border-border card-shadow transition-all hover:shadow-md"
         >
           <div className="flex items-center space-x-4">
-            <FileText className="w-6 h-6 text-blue-500" />
+            <FileText className="w-6 h-6 text-primary" />
             <div>
-              <p className="font-medium text-gray-900 truncate max-w-xs">
+              <p className="font-medium text-foreground truncate max-w-xs">
                 {doc.filename}
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 {doc.word_count.toLocaleString()} words |{" "}
                 {new Date(doc.created_at).toLocaleDateString()}
               </p>
@@ -64,20 +64,20 @@ const DocumentList = ({
 
           <div className="flex items-center space-x-3">
             {doc.status === "processing" && (
-              <span className="flex items-center text-sm text-yellow-600">
+              <span className="flex items-center text-sm text-yellow-400">
                 <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 Processing...
               </span>
             )}
             {doc.status === "completed" && (
               <>
-                <span className="flex items-center text-sm text-green-600">
+                <span className="flex items-center text-sm text-green-400">
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Ready
                 </span>
                 <Link
                   href={`/chat?docId=${doc.id}`}
-                  className="p-2 rounded-full text-white bg-blue-500 hover:bg-blue-600 transition-colors"
+                  className="p-2 rounded-full text-primary-foreground bg-primary hover:bg-primary/90 transition-colors"
                   title="Start Chat"
                 >
                   <MessageSquare className="w-5 h-5" />
@@ -85,7 +85,7 @@ const DocumentList = ({
               </>
             )}
             {doc.status === "failed" && (
-              <span className="flex items-center text-sm text-red-600">
+              <span className="flex items-center text-sm text-red-400">
                 <AlertTriangle className="w-4 h-4 mr-1" />
                 Failed
               </span>
@@ -93,7 +93,7 @@ const DocumentList = ({
 
             <button
               onClick={() => onDelete(doc.id)}
-              className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors"
+              className="p-2 rounded-full text-red-400 hover:bg-secondary transition-colors"
               title="Delete Document"
             >
               <Trash2 className="w-5 h-5" />
@@ -178,9 +178,9 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-6 bg-white rounded-xl border border-gray-200 card-shadow"
+      className="p-6 bg-card rounded-xl border border-border card-shadow"
     >
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <h2 className="text-xl font-semibold text-foreground mb-4">
         Upload New Document
       </h2>
 
@@ -189,20 +189,20 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
           htmlFor="dropzone-file"
           className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
             file
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100"
+              ? "border-primary bg-secondary"
+              : "border-border hover:border-muted-foreground bg-secondary/50 hover:bg-secondary"
           }`}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
-            <UploadCloud className="w-8 h-8 mb-3 text-gray-500" />
-            <p className="mb-2 text-sm text-gray-500">
-              <span className="font-semibold">Click to upload</span> or drag and drop
+            <UploadCloud className="w-8 h-8 mb-3 text-muted-foreground" />
+            <p className="mb-2 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Click to upload</span> or drag and drop
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               PDF, DOCX, or TXT (Max 10MB)
             </p>
             {file && (
-              <p className="mt-2 text-sm font-medium text-blue-600">
+              <p className="mt-2 text-sm font-medium text-primary">
                 Selected: {file.name}
               </p>
             )}
@@ -218,12 +218,12 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       </div>
 
       {error && (
-        <div className="mt-4 p-3 text-sm text-red-700 bg-red-100 rounded-xl border border-red-200">
+        <div className="mt-4 p-3 text-sm text-red-400 bg-red-900/50 rounded-xl border border-red-900">
           {error}
         </div>
       )}
       {success && (
-        <div className="mt-4 p-3 text-sm text-green-700 bg-green-100 rounded-xl border border-green-200">
+        <div className="mt-4 p-3 text-sm text-green-400 bg-green-900/50 rounded-xl border border-green-900">
           {success}
         </div>
       )}
@@ -231,7 +231,7 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       <button
         type="submit"
         disabled={!file || isUploading}
-        className="w-full mt-4 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+        className="w-full mt-4 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50"
       >
         {isUploading ? (
           <>
@@ -310,7 +310,7 @@ export default function DocumentsPage() {
   if (status === "loading" || isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -318,9 +318,9 @@ export default function DocumentsPage() {
   if (status === "unauthenticated") {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-        <p className="mt-2 text-gray-600">Please log in to view your documents.</p>
-        <Link href="/login" className="mt-4 inline-block text-blue-600 hover:text-blue-700">
+        <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
+        <p className="mt-2 text-muted-foreground">Please log in to view your documents.</p>
+        <Link href="/login" className="mt-4 inline-block text-primary hover:text-primary/80">
           Go to Login
         </Link>
       </div>
@@ -329,11 +329,11 @@ export default function DocumentsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-3xl font-bold text-gray-900">Your Legal Documents</h1>
+      <h1 className="text-3xl font-bold text-foreground">Your Legal Documents</h1>
 
       <UploadForm onUploadSuccess={fetchDocuments} />
 
-      <h2 className="text-2xl font-semibold text-gray-800 pt-4 border-t border-gray-200">
+      <h2 className="text-2xl font-semibold text-foreground pt-4 border-t border-border">
         Uploaded Files
       </h2>
       <DocumentList documents={documents} onDelete={handleDelete} />

@@ -6,7 +6,7 @@ import MainLayout, { Providers } from "@/components/layout/MainLayout";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Manus Legal AI Advisor",
+  title: "Celestius Legal AI Advisor",
   description: "Your personal AI-powered legal document analysis and chat advisor.",
 };
 

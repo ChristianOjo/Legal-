@@ -3,56 +3,62 @@
 @tailwind utilities;
 
 /* 
-  Custom styles for a clean, "Apple-like" aesthetic.
-  Focus on subtle shadows, rounded corners, and a clean background.
+  Custom styles for a sleek, modern dark theme.
+  Focus on deep, desaturated colors, subtle shadows, and a clean background.
 */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Dark Theme Palette (Desaturated Gray/Blue) */
+    --background: 220 14% 10%; /* Deep Charcoal */
+    --foreground: 210 20% 98%; /* Off-White */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 14% 15%; /* Slightly lighter card background */
+    --card-foreground: 210 20% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 14% 15%;
+    --popover-foreground: 210 20% 98%;
 
-    --primary: 221.2 83.2% 53.3%; /* Muted Blue */
+    --primary: 240 50% 60%; /* Sleek Indigo/Violet for branding */
     --primary-foreground: 210 20% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 20%; /* Darker secondary background */
+    --secondary-foreground: 210 20% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 20%;
+    --muted-foreground: 215 14% 60%; /* Light gray text for muted areas */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 14% 20%;
+    --accent-foreground: 210 20% 98%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 220 14% 25%; /* Subtle border color */
+    --input: 220 14% 20%;
+    --ring: 240 50% 60%;
 
-    --radius: 0.75rem; /* Slightly larger radius for a softer look */
+    --radius: 0.75rem;
+  }
+
+  body {
+    color: hsl(var(--foreground));
+    background: hsl(var(--background));
   }
 }
 
 @layer components {
   .card-shadow {
-    /* Subtle shadow for a floating effect */
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    /* Subtle shadow for a floating effect in dark mode */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   }
   
   .card-glass {
-    /* Frosted glass effect for a modern look */
-    background-color: rgba(255, 255, 255, 0.8);
+    /* Frosted glass effect for a modern look in dark mode */
+    background-color: hsla(var(--card), 0.8);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid hsla(var(--border), 0.5);
   }
 }
 

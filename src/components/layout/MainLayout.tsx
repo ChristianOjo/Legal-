@@ -39,16 +39,16 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
 
   return (
     <div
-      className={`fixed inset-y-0 left-0 z-50 w-64 bg-white/80 backdrop-blur-xl border-r border-gray-200 p-4 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+      className={`fixed inset-y-0 left-0 z-50 w-64 bg-card/80 backdrop-blur-xl border-r border-border p-4 transition-transform duration-300 ease-in-out lg:translate-x-0 ${
         isOpen ? "translate-x-0" : "-translate-x-full"
       }`}
     >
       <div className="flex justify-between items-center mb-8">
-        <Link href="/" className="text-xl font-bold text-gray-800 flex items-center">
-          <span className="text-2xl font-extrabold text-blue-600 mr-1">M</span>
-          <span className="text-gray-900">anus Legal AI</span>
+        <Link href="/" className="text-xl font-bold text-foreground flex items-center">
+          <span className="text-2xl font-extrabold text-primary mr-1">C</span>
+          <span className="text-foreground">elestius</span>
         </Link>
-        <button onClick={onClose} className="lg:hidden text-gray-500 hover:text-gray-700">
+        <button onClick={onClose} className="lg:hidden text-muted-foreground hover:text-foreground">
           <X size={24} />
         </button>
       </div>
@@ -60,8 +60,8 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
             href={item.href}
             className={`flex items-center p-3 rounded-xl transition-colors duration-150 ${
               pathname === item.href
-                ? "bg-blue-500 text-white shadow-lg shadow-blue-200"
-                : "text-gray-700 hover:bg-gray-100"
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                : "text-muted-foreground hover:bg-secondary"
             }`}
             onClick={onClose}
           >
@@ -71,18 +71,18 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         ))}
       </nav>
 
-      <div className="absolute bottom-4 left-4 right-4 border-t border-gray-200 pt-4">
+      <div className="absolute bottom-4 left-4 right-4 border-t border-border pt-4">
         {session ? (
           <div className="space-y-2">
-            <div className="flex items-center p-3 rounded-xl bg-gray-50">
-              <User size={20} className="mr-3 text-gray-600" />
-              <span className="text-sm font-medium text-gray-800 truncate">
+            <div className="flex items-center p-3 rounded-xl bg-secondary">
+              <User size={20} className="mr-3 text-muted-foreground" />
+              <span className="text-sm font-medium text-foreground truncate">
                 {session.user?.email}
               </span>
             </div>
             <button
               onClick={() => signOut()}
-              className="w-full flex items-center p-3 rounded-xl text-red-600 hover:bg-red-50 transition-colors duration-150"
+              className="w-full flex items-center p-3 rounded-xl text-red-400 hover:bg-secondary transition-colors duration-150"
             >
               <LogOut size={20} className="mr-3" />
               <span className="font-medium">Logout</span>
@@ -91,7 +91,8 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         ) : (
           <Link
             href="/login"
-            className="w-full flex items-center justify-center p-3 rounded-xl bg-blue-500 text-white hover:bg-blue-600 transition-colors duration-150 shadow-md"
+            className="w-full flex items-center justify-center p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 shadow-md"}]
+,path:
             onClick={onClose}
           >
             <User size={20} className="mr-2" />
@@ -118,8 +119,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   // Show a simple loading screen while session is loading
   if (status === "loading") {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-lg font-medium text-gray-600">Loading Session...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-lg font-medium text-muted-foreground">Loading Session...</div>
       </div>
     );
   }
@@ -131,14 +132,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       window.location.replace("/login");
     }
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-lg font-medium text-gray-600">Redirecting to login...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-lg font-medium text-muted-foreground">Redirecting to login...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block">
         <Sidebar isOpen={true} onClose={() => {}} />
@@ -158,23 +159,23 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {/* Main Content Area */}
       <div className="flex-1 lg:ml-64 flex flex-col">
         {/* Header/Mobile Nav */}
-        <header className="sticky top-0 z-30 lg:hidden bg-white/90 backdrop-blur-md border-b border-gray-200 p-4 flex items-center justify-between">
+        <header className="sticky top-0 z-30 lg:hidden bg-card/90 backdrop-blur-md border-b border-border p-4 flex items-center justify-between">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="text-gray-600 hover:text-gray-800"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Menu size={24} />
           </button>
-          <Link href="/" className="text-xl font-bold text-gray-800 flex items-center">
-            <span className="text-2xl font-extrabold text-blue-600 mr-1">M</span>
-            <span className="text-gray-900">anus Legal AI</span>
+          <Link href="/" className="text-xl font-bold text-foreground flex items-center">
+            <span className="text-2xl font-extrabold text-primary mr-1">C</span>
+            <span className="text-foreground">elestius</span>
           </Link>
           {session ? (
-            <button onClick={() => signOut()} className="text-red-600 hover:text-red-700">
+            <button onClick={() => signOut()} className="text-red-400 hover:text-red-300">
               <LogOut size={20} />
             </button>
           ) : (
-            <Link href="/login" className="text-blue-600 hover:text-blue-700">
+            <Link href="/login" className="text-primary hover:text-primary/80">
               <User size={20} />
             </Link>
           )}
