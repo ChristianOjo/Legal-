@@ -277,15 +277,29 @@ export default function DocumentsPage() {
     }
   };
 
-  // Initial fetch and periodic refresh
+  // Initial fetch
   useEffect(() => {
     if (status === "authenticated") {
       fetchDocuments();
-      // Set up a refresh interval to check processing status
-      const interval = setInterval(fetchDocuments, 10000); // Refresh every 10 seconds
-      return () => clearInterval(interval);
     }
   }, [status]);
+
+  // Periodic refresh only if there are documents in 'processing' state
+  useEffect(() => {
+    const hasProcessingDocs = documents.some(doc => doc.status === "processing");
+    
+    let interval: NodeJS.Timeout | undefined;
+    if (status === "authenticated" && hasProcessingDocs) {
+      // Set up a refresh interval to check processing status
+      interval = setInterval(fetchDocuments, 10000); // Refresh every 10 seconds
+    }
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [status, documents]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return;
