@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation"; // <-- ADDED useRouter
 import {
   FileText,
   MessageSquare,
@@ -126,15 +126,13 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // Redirect unauthenticated users to login, except for the home page
   if (status === "unauthenticated" && pathname !== "/") {
-    // Perform a hard redirect to prevent potential client-side reload loops
+    // Use Next.js router for client-side navigation
+    const router = useRouter();
     if (typeof window !== "undefined") {
-      window.location.replace("/login");
+      router.replace("/login");
     }
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="text-lg font-medium text-muted-foreground">Redirecting to login...</div>
-      </div>
-    );
+    // Return null to prevent rendering the protected content and stop the loop <-- THE FIX
+    return null;
   }
 
   return (
