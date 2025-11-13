@@ -126,7 +126,10 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   // Redirect unauthenticated users to login, except for the home page
   if (status === "unauthenticated" && pathname !== "/") {
-    // Note: NextAuth handles the actual redirect, but we can show a message
+    // Perform a hard redirect to prevent potential client-side reload loops
+    if (typeof window !== "undefined") {
+      window.location.replace("/login");
+    }
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
         <div className="text-lg font-medium text-gray-600">Redirecting to login...</div>
