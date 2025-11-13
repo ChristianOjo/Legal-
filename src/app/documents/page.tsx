@@ -256,7 +256,8 @@ export default function DocumentsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Function to fetch documents
-  const fetchDocuments = useCallback(async () => {
+  // Function to fetch documents
+  const fetchDocuments = async () => {
     if (status !== "authenticated") return;
     setIsLoading(true);
     try {
@@ -274,7 +275,7 @@ export default function DocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [status]);
+  };
 
   // Initial fetch and periodic refresh
   useEffect(() => {
@@ -284,7 +285,7 @@ export default function DocumentsPage() {
       const interval = setInterval(fetchDocuments, 10000); // Refresh every 10 seconds
       return () => clearInterval(interval);
     }
-  }, [status, fetchDocuments]);
+  }, [status]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return;
