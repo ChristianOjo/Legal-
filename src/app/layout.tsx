@@ -1,35 +1,26 @@
-import type { Metadata } from "next";
 import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import MainLayout, { Providers } from "@/components/layout/MainLayout";
 
-// Replace Geist fonts with Google fonts (cached locally)
-import { Inter, Roboto_Mono } from "next/font/google";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-  display: "swap", // ✅ prevents blocking & network fetch
-});
-
-const robotoMono = Roboto_Mono({
-  variable: "--font-roboto-mono",
-  subsets: ["latin"],
-  display: "swap", // ✅ same here
-});
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Legal RAG Advisor",
-  description: "AI-powered document assistant",
+  title: "Manus Legal AI Advisor",
+  description: "Your personal AI-powered legal document analysis and chat advisor.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${robotoMono.variable} antialiased`}>
-        {children}
+      <body className={inter.className}>
+        <Providers>
+          <MainLayout>{children}</MainLayout>
+        </Providers>
       </body>
     </html>
   );
