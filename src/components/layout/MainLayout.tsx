@@ -91,8 +91,7 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
         ) : (
           <Link
             href="/login"
-            className="w-full flex items-center justify-center p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 shadow-md"}]
-,path:
+            className="w-full flex items-center justify-center p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 shadow-md"
             onClick={onClose}
           >
             <User size={20} className="mr-2" />
@@ -196,4 +195,3 @@ import { SessionProvider } from "next-auth/react";
 export function Providers({ children }: { children: React.ReactNode }) {
   return <SessionProvider>{children}</SessionProvider>;
 }
-
