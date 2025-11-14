@@ -154,22 +154,36 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
     const formData = new FormData();
     formData.append("file", file);
 
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
     try {
       const response = await fetch("/api/documents/upload", {
         method: "POST",
         body: formData,
+        signal: controller.signal,
       });
+
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         setSuccess("Document uploaded and processing started!");
         setFile(null);
         onUploadSuccess(); // Refresh document list
       } else {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({ error: "Upload failed" }));
         setError(data.error || "Upload failed. Please try again.");
       }
-    } catch (err) {
-      setError("Network error during upload.");
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === "AbortError") {
+        setError("Upload timed out. The file may be too large or the server is busy. Please try again.");
+      } else if (err instanceof TypeError && err.message.includes("fetch")) {
+        setError("Network error. Please check your connection and try again.");
+      } else {
+        setError(`Upload failed: ${err.message || "Unknown error"}`);
+      }
     } finally {
       setIsUploading(false);
     }

@@ -13,6 +13,9 @@ import { upsertVectors } from "@/lib/vector-store";
 // Next.js 14+ route exports
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+// Increase timeout for document processing (Vercel Pro: up to 300s, Hobby: 10s)
+// Note: Processing happens async, so this mainly affects the initial upload response
+export const maxDuration = 60; // 60 seconds
 
 export async function POST(req: NextRequest) {
   try {
@@ -74,7 +77,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    processDocumentAsync(document.id, userId, buffer, file.name, file.type);
+    // Start async processing (don't await - let it run in background)
+    processDocumentAsync(document.id, userId, buffer, file.name, file.type).catch(
+      (error) => {
+        console.error(`Background processing error for document ${document.id}:`, error);
+        // Error is already handled in processDocumentAsync
+      }
+    );
 
     return NextResponse.json(
       {
@@ -90,7 +99,12 @@ export async function POST(req: NextRequest) {
     );
   } catch (error) {
     console.error("Error uploading document:", error);
-    return NextResponse.json({ error: "Failed to upload document" }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to upload document";
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
   }
 }
 
@@ -105,18 +119,34 @@ async function processDocumentAsync(
   fileType: string
 ) {
   try {
+    console.log(`Starting processing for document ${documentId} (${filename})`);
+    
+    // Step 1: Extract text from document
+    console.log(`[${documentId}] Extracting text...`);
     const processed = await processDocument(buffer, filename, fileType);
     const cleanedText = cleanLegalText(processed.text);
+    
+    // Step 2: Chunk the document
+    console.log(`[${documentId}] Chunking document (${cleanedText.length} chars)...`);
     const chunks = await chunkDocument(cleanedText, filename, {
       chunkSize: 1000,
       chunkOverlap: 200,
     });
+    console.log(`[${documentId}] Created ${chunks.length} chunks`);
 
+    // Step 3: Generate embeddings
+    console.log(`[${documentId}] Generating embeddings...`);
     const texts = chunks.map((chunk) => chunk.content);
     const embeddings = await generateEmbeddingsBatch(texts);
+    console.log(`[${documentId}] Generated ${embeddings.length} embeddings`);
 
+    // Step 4: Upsert to vector store
+    console.log(`[${documentId}] Upserting vectors to Pinecone...`);
     const vectorIds = await upsertVectors(embeddings, chunks, documentId, userId, fileType);
+    console.log(`[${documentId}] Upserted ${vectorIds.length} vectors`);
 
+    // Step 5: Save chunks to database
+    console.log(`[${documentId}] Saving chunks to database...`);
     const chunkRecords = chunks.map((chunk, index) => ({
       document_id: documentId,
       chunk_index: index,
@@ -128,10 +158,14 @@ async function processDocumentAsync(
     const batchSize = 100;
     for (let i = 0; i < chunkRecords.length; i += batchSize) {
       const batch = chunkRecords.slice(i, i + batchSize);
-      await supabaseAdmin.from("document_chunks").insert(batch);
+      const { error } = await supabaseAdmin.from("document_chunks").insert(batch);
+      if (error) {
+        throw new Error(`Failed to insert chunks batch: ${error.message}`);
+      }
     }
 
-    await supabaseAdmin
+    // Step 6: Update document status
+    const { error: updateError } = await supabaseAdmin
       .from("documents")
       .update({
         status: "completed",
@@ -139,20 +173,31 @@ async function processDocumentAsync(
         metadata: {
           ...processed.metadata,
           totalChunks: chunks.length,
+          wordCount: processed.metadata.wordCount, // Store in metadata
         },
       })
       .eq("id", documentId);
 
-    console.log(`Document ${documentId} processed successfully`);
-  } catch (error) {
-    console.error(`Error processing document ${documentId}:`, error);
+    if (updateError) {
+      throw new Error(`Failed to update document status: ${updateError.message}`);
+    }
 
-    await supabaseAdmin
-      .from("documents")
-      .update({
-        status: "failed",
-        metadata: { error: error instanceof Error ? error.message : "Unknown error" },
-      })
-      .eq("id", documentId);
+    console.log(`[${documentId}] Document processed successfully`);
+  } catch (error) {
+    console.error(`[${documentId}] Error processing document:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    
+    // Try to update status to failed
+    try {
+      await supabaseAdmin
+        .from("documents")
+        .update({
+          status: "failed",
+          metadata: { error: errorMessage },
+        })
+        .eq("id", documentId);
+    } catch (updateError) {
+      console.error(`[${documentId}] Failed to update error status:`, updateError);
+    }
   }
 }

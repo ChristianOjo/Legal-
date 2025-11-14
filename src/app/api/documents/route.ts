@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     // Fetch documents belonging to the current user
     const { data: documents, error } = await supabaseClient
       .from("documents")
-      .select("id, filename, status, word_count, created_at")
+      .select("id, filename, status, metadata, created_at")
       .eq("user_id", userId);
 
     if (error) {
@@ -30,7 +30,16 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json(documents);
+    // Transform documents to include word_count from metadata
+    const transformedDocuments = (documents || []).map((doc: any) => ({
+      id: doc.id,
+      filename: doc.filename,
+      status: doc.status,
+      word_count: doc.metadata?.wordCount || 0,
+      created_at: doc.created_at,
+    }));
+
+    return NextResponse.json(transformedDocuments);
   } catch (error) {
     console.error("Internal server error fetching documents:", error);
     return NextResponse.json(
