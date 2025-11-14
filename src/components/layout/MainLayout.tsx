@@ -12,7 +12,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 // --- Navigation Links ---
 const navItems = [
@@ -108,9 +108,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const { data: session, status } = useSession();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   // Hide layout for auth pages
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
+
+  // Redirect unauthenticated users to login, except for the home page
+  const shouldRedirectToLogin = status === "unauthenticated" && pathname !== "/";
+
+  useEffect(() => {
+    if (shouldRedirectToLogin && typeof window !== "undefined") {
+      router.replace("/login");
+    }
+  }, [shouldRedirectToLogin, router]);
+
   if (isAuthPage) {
     return <>{children}</>;
   }
@@ -124,14 +135,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     );
   }
 
-  // Redirect unauthenticated users to login, except for the home page
-  if (status === "unauthenticated" && pathname !== "/") {
-    // Use Next.js router for client-side navigation
-    const router = useRouter();
-    if (typeof window !== "undefined") {
-      router.replace("/login");
-    }
-    // Return null to prevent rendering the protected content and stop the loop <-- THE FIX
+  if (shouldRedirectToLogin) {
     return null;
   }
 

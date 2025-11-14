@@ -256,8 +256,7 @@ export default function DocumentsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   // Function to fetch documents
-  // Function to fetch documents
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     if (status !== "authenticated") return;
     setIsLoading(true);
     try {
@@ -266,7 +265,12 @@ export default function DocumentsPage() {
       if (response.ok) {
         const data = await response.json();
         // Sort by creation date, newest first
-        setDocuments(data.sort((a: Document, b: Document) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+        setDocuments(
+          data.sort(
+            (a: Document, b: Document) =>
+              new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          )
+        );
       } else {
         console.error("Failed to fetch documents");
       }
@@ -275,14 +279,14 @@ export default function DocumentsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [status]);
 
   // Initial fetch
   useEffect(() => {
     if (status === "authenticated") {
       fetchDocuments();
     }
-  }, [status]);
+  }, [status, fetchDocuments]);
 
   // Periodic refresh only if there are documents in 'processing' state
   useEffect(() => {
@@ -299,7 +303,7 @@ export default function DocumentsPage() {
         clearInterval(interval);
       }
     };
-  }, [status, documents]);
+  }, [status, documents, fetchDocuments]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return;
