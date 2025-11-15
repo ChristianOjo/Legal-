@@ -124,15 +124,27 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
         "text/plain",
       ];
 
+      // Validate file size
       if (selectedFile.size > maxSize) {
-        setError("File size exceeds 10MB limit.");
+        setError(`File size (${(selectedFile.size / 1024 / 1024).toFixed(2)}MB) exceeds 10MB limit.`);
         setFile(null);
+        e.target.value = ""; // Clear input
         return;
       }
 
+      // Validate file type
       if (!allowedTypes.includes(selectedFile.type)) {
-        setError("Unsupported file type. Please use PDF, DOCX, or TXT.");
+        setError(`Unsupported file type: ${selectedFile.type || "unknown"}. Please use PDF, DOCX, or TXT.`);
         setFile(null);
+        e.target.value = ""; // Clear input
+        return;
+      }
+
+      // Check if file is empty
+      if (selectedFile.size === 0) {
+        setError("File appears to be empty. Please select a valid file.");
+        setFile(null);
+        e.target.value = ""; // Clear input
         return;
       }
 
@@ -156,7 +168,7 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
 
     // Create AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for upload only
 
     try {
       const response = await fetch("/api/documents/upload", {
@@ -168,24 +180,39 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        setSuccess("Document uploaded and processing started!");
+        const data = await response.json().catch(() => ({}));
+        setSuccess("Document uploaded successfully! Processing in background...");
         setFile(null);
-        // Delay the refresh slightly to avoid immediate re-render during upload
+        // Reset file input
+        const fileInput = document.getElementById("dropzone-file") as HTMLInputElement;
+        if (fileInput) fileInput.value = "";
+        
+        // Refresh document list after a short delay
         setTimeout(() => {
-          onUploadSuccess(); // Refresh document list
-        }, 100);
+          onUploadSuccess();
+        }, 500);
       } else {
-        const data = await response.json().catch(() => ({ error: "Upload failed" }));
-        setError(data.error || "Upload failed. Please try again.");
+        // Try to get error message from response
+        let errorMessage = "Upload failed. Please try again.";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          // If JSON parsing fails, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        setError(errorMessage);
       }
     } catch (err: any) {
       clearTimeout(timeoutId);
       if (err.name === "AbortError") {
-        setError("Upload timed out. The file may be too large or the server is busy. Please try again.");
+        setError("Upload timed out. Please check your connection and try again with a smaller file.");
       } else if (err instanceof TypeError && err.message.includes("fetch")) {
-        setError("Network error. Please check your connection and try again.");
+        setError("Network error. Please check your internet connection and try again.");
+      } else if (err instanceof Error) {
+        setError(`Upload failed: ${err.message}`);
       } else {
-        setError(`Upload failed: ${err.message || "Unknown error"}`);
+        setError("Upload failed. Please try again or contact support if the problem persists.");
       }
     } finally {
       setIsUploading(false);

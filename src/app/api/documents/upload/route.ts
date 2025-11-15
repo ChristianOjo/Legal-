@@ -77,6 +77,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate API keys before starting background processing
+    if (!process.env.COHERE_API_KEY) {
+      await supabaseAdmin
+        .from("documents")
+        .update({
+          status: "failed",
+          metadata: { error: "COHERE_API_KEY is not configured" },
+        })
+        .eq("id", document.id);
+      return NextResponse.json(
+        { error: "Server configuration error. Please contact support." },
+        { status: 500 }
+      );
+    }
+
+    if (!process.env.PINECONE_API_KEY) {
+      await supabaseAdmin
+        .from("documents")
+        .update({
+          status: "failed",
+          metadata: { error: "PINECONE_API_KEY is not configured" },
+        })
+        .eq("id", document.id);
+      return NextResponse.json(
+        { error: "Server configuration error. Please contact support." },
+        { status: 500 }
+      );
+    }
+
     // Start async processing (don't await - let it run in background)
     processDocumentAsync(document.id, userId, buffer, file.name, file.type).catch(
       (error) => {
@@ -118,35 +147,99 @@ async function processDocumentAsync(
   filename: string,
   fileType: string
 ) {
+  const startTime = Date.now();
+  
   try {
-    console.log(`Starting processing for document ${documentId} (${filename})`);
+    console.log(`[${documentId}] Starting processing for ${filename}`);
     
+    // Update status with progress
+    const updateProgress = async (step: string, progress?: number) => {
+      try {
+        await supabaseAdmin
+          .from("documents")
+          .update({
+            metadata: {
+              processingStep: step,
+              progress: progress,
+              lastUpdate: new Date().toISOString(),
+            },
+          })
+          .eq("id", documentId);
+      } catch (e) {
+        // Don't fail processing if progress update fails
+        console.warn(`[${documentId}] Failed to update progress:`, e);
+      }
+    };
+
     // Step 1: Extract text from document
+    await updateProgress("Extracting text from document...");
     console.log(`[${documentId}] Extracting text...`);
-    const processed = await processDocument(buffer, filename, fileType);
+    
+    const processed = await Promise.race([
+      processDocument(buffer, filename, fileType),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Text extraction timeout (60s)")), 60000)
+      ),
+    ]);
+    
     const cleanedText = cleanLegalText(processed.text);
     
+    if (!cleanedText || cleanedText.trim().length === 0) {
+      throw new Error("Document appears to be empty or could not extract text");
+    }
+    
     // Step 2: Chunk the document
+    await updateProgress("Chunking document...");
     console.log(`[${documentId}] Chunking document (${cleanedText.length} chars)...`);
+    
     const chunks = await chunkDocument(cleanedText, filename, {
       chunkSize: 1000,
       chunkOverlap: 200,
     });
+    
+    if (chunks.length === 0) {
+      throw new Error("No chunks created from document");
+    }
+    
     console.log(`[${documentId}] Created ${chunks.length} chunks`);
 
-    // Step 3: Generate embeddings
-    console.log(`[${documentId}] Generating embeddings...`);
+    // Step 3: Generate embeddings with progress tracking
+    await updateProgress("Generating embeddings...", 0);
+    console.log(`[${documentId}] Generating embeddings for ${chunks.length} chunks...`);
+    
     const texts = chunks.map((chunk) => chunk.content);
-    const embeddings = await generateEmbeddingsBatch(texts);
+    const embeddings = await generateEmbeddingsBatch(
+      texts,
+      96, // batch size
+      (current, total) => {
+        const progress = Math.round((current / total) * 100);
+        updateProgress(`Generating embeddings... ${current}/${total}`, progress);
+      }
+    );
+    
+    if (embeddings.length !== chunks.length) {
+      throw new Error(`Embedding count mismatch: expected ${chunks.length}, got ${embeddings.length}`);
+    }
+    
     console.log(`[${documentId}] Generated ${embeddings.length} embeddings`);
 
     // Step 4: Upsert to vector store
+    await updateProgress("Saving to vector database...");
     console.log(`[${documentId}] Upserting vectors to Pinecone...`);
-    const vectorIds = await upsertVectors(embeddings, chunks, documentId, userId, fileType);
+    
+    const vectorIds = await Promise.race([
+      upsertVectors(embeddings, chunks, documentId, userId, fileType),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Vector upsert timeout (120s)")), 120000)
+      ),
+    ]);
+    
     console.log(`[${documentId}] Upserted ${vectorIds.length} vectors`);
 
     // Step 5: Save chunks to database
+    await updateProgress("Saving document chunks...");
     console.log(`[${documentId}] Saving chunks to database...`);
+    
     const chunkRecords = chunks.map((chunk, index) => ({
       document_id: documentId,
       chunk_index: index,
@@ -164,7 +257,10 @@ async function processDocumentAsync(
       }
     }
 
-    // Step 6: Update document status
+    // Step 6: Update document status to completed
+    await updateProgress("Finalizing...");
+    const processingTime = Math.round((Date.now() - startTime) / 1000);
+    
     const { error: updateError } = await supabaseAdmin
       .from("documents")
       .update({
@@ -173,7 +269,8 @@ async function processDocumentAsync(
         metadata: {
           ...processed.metadata,
           totalChunks: chunks.length,
-          wordCount: processed.metadata.wordCount, // Store in metadata
+          wordCount: processed.metadata.wordCount,
+          processingTimeSeconds: processingTime,
         },
       })
       .eq("id", documentId);
@@ -182,18 +279,23 @@ async function processDocumentAsync(
       throw new Error(`Failed to update document status: ${updateError.message}`);
     }
 
-    console.log(`[${documentId}] Document processed successfully`);
+    console.log(`[${documentId}] Document processed successfully in ${processingTime}s`);
   } catch (error) {
-    console.error(`[${documentId}] Error processing document:`, error);
+    const processingTime = Math.round((Date.now() - startTime) / 1000);
+    console.error(`[${documentId}] Error processing document after ${processingTime}s:`, error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     
-    // Try to update status to failed
+    // Try to update status to failed with detailed error
     try {
       await supabaseAdmin
         .from("documents")
         .update({
           status: "failed",
-          metadata: { error: errorMessage },
+          metadata: {
+            error: errorMessage,
+            failedAt: new Date().toISOString(),
+            processingTimeSeconds: processingTime,
+          },
         })
         .eq("id", documentId);
     } catch (updateError) {

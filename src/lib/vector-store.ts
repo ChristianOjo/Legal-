@@ -96,11 +96,35 @@ export async function upsertVectors(
       };
     });
 
-    // Upsert in batches of 100
+    // Upsert in batches of 100 with retry logic
     const batchSize = 100;
+    const totalBatches = Math.ceil(vectors.length / batchSize);
+    
     for (let i = 0; i < vectors.length; i += batchSize) {
       const batch = vectors.slice(i, i + batchSize);
-      await index.upsert(batch);
+      const batchNumber = Math.floor(i / batchSize) + 1;
+      let retries = 3;
+      let success = false;
+
+      while (retries > 0 && !success) {
+        try {
+          await Promise.race([
+            index.upsert(batch),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("Pinecone upsert timeout")), 30000)
+            ),
+          ]);
+          success = true;
+        } catch (error) {
+          retries--;
+          if (retries === 0) {
+            console.error(`Failed to upsert batch ${batchNumber}/${totalBatches} after retries:`, error);
+            throw new Error(`Pinecone upsert failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+          }
+          // Wait before retry
+          await new Promise((resolve) => setTimeout(resolve, 1000 * (4 - retries)));
+        }
+      }
     }
 
     return vectorIds;
