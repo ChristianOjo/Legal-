@@ -11,6 +11,7 @@ import {
   User,
   Zap,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -27,6 +28,16 @@ interface Document {
   status: "processing" | "completed" | "failed";
 }
 
+// Suggested prompts for first-time users
+const SUGGESTED_PROMPTS = [
+  "What are the main legal obligations in this document?",
+  "Summarize the key terms and conditions",
+  "What are the important deadlines or dates mentioned?",
+  "Explain the liability clauses",
+  "What are the termination conditions?",
+  "Identify any potential risks or concerns",
+];
+
 // --- Message Bubble Component ---
 const MessageBubble = ({ message }: { message: Message }) => {
   const isUser = message.role === "user";
@@ -35,17 +46,17 @@ const MessageBubble = ({ message }: { message: Message }) => {
       className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}
     >
       <div
-        className={`flex items-start max-w-3xl p-4 rounded-2xl shadow-md ${
+        className={`flex items-start max-w-3xl p-4 rounded-lg ${
           isUser
-            ? "bg-blue-500 text-white rounded-br-none"
-            : "bg-white text-gray-800 rounded-tl-none border border-gray-200"
+            ? "bg-primary text-primary-foreground rounded-br-none"
+            : "bg-card text-foreground rounded-tl-none border border-border"
         }`}
       >
         <div className="mr-3">
           {isUser ? (
             <User className="w-5 h-5" />
           ) : (
-            <Zap className="w-5 h-5 text-blue-500" />
+            <Zap className="w-5 h-5 text-primary" />
           )}
         </div>
         <p className="whitespace-pre-wrap">{message.content}</p>
@@ -96,24 +107,22 @@ export default function ChatPage() {
       const doc = availableDocuments.find(d => d.id === docId);
       if (doc) {
         setCurrentDocument(doc);
-        setMessages([
-          {
-            id: 1,
-            role: "assistant",
-            content: `Hello! I'm your Celestius Legal AI Advisor. I've loaded the document "${doc.filename}". How can I help you analyze it?`,
-          },
-        ]);
+        // Clear messages to show suggested prompts instead
+        setMessages([]);
       }
     } else if (availableDocuments.length > 0 && !docId) {
-        // If no docId but docs exist, prompt user to select one
-        setCurrentDocument(null);
-        setMessages([
-            {
-                id: 1,
-                role: "assistant",
-                content: "Welcome to your Legal AI Advisor. Please select a document from the sidebar or upload a new one to begin analysis."
-            }
-        ])
+      // If no docId but docs exist, prompt user to select one
+      setCurrentDocument(null);
+      setMessages([]);
+    } else if (availableDocuments.length === 0) {
+      setCurrentDocument(null);
+      setMessages([
+        {
+          id: 1,
+          role: "assistant",
+          content: "Welcome to your Legal AI Advisor. Please upload a document first to begin analysis.",
+        },
+      ]);
     }
   }, [docId, availableDocuments]);
 
@@ -180,7 +189,7 @@ export default function ChatPage() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -188,9 +197,9 @@ export default function ChatPage() {
   if (status === "unauthenticated") {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900">Access Denied</h2>
-        <p className="mt-2 text-gray-600">Please log in to use the chat advisor.</p>
-        <Link href="/login" className="mt-4 inline-block text-blue-600 hover:text-blue-700">
+        <h2 className="text-2xl font-bold text-foreground">Access Denied</h2>
+        <p className="mt-2 text-muted-foreground">Please log in to use the chat advisor.</p>
+        <Link href="/login" className="mt-4 inline-block text-primary hover:text-primary/80">
           Go to Login
         </Link>
       </div>
@@ -198,27 +207,27 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-100px)] max-h-[900px] rounded-3xl overflow-hidden shadow-2xl card-shadow">
+    <div className="flex h-[calc(100vh-100px)] max-h-[900px] rounded-lg overflow-hidden border border-border">
       {/* Document Sidebar */}
-      <div className="w-64 bg-white border-r border-gray-200 p-4 flex flex-col">
-        <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center">
-          <FileText className="w-5 h-5 mr-2 text-blue-500" />
+      <div className="w-64 bg-card border-r border-border p-4 flex flex-col">
+        <h2 className="text-xl font-bold text-foreground mb-4 flex items-center">
+          <FileText className="w-5 h-5 mr-2 text-primary" />
           Documents
         </h2>
         <div className="flex-1 overflow-y-auto space-y-2">
           {availableDocuments.length === 0 ? (
-            <div className="text-center p-4 text-sm text-gray-500 bg-gray-50 rounded-xl">
-              No completed documents. <Link href="/documents" className="text-blue-500 hover:underline">Upload one?</Link>
+            <div className="text-center p-4 text-sm text-muted-foreground bg-secondary rounded-lg">
+              No completed documents. <Link href="/documents" className="text-primary hover:underline">Upload one?</Link>
             </div>
           ) : (
             availableDocuments.map((doc) => (
               <Link
                 key={doc.id}
                 href={`/chat?docId=${doc.id}`}
-                className={`block p-3 rounded-xl transition-colors duration-150 border ${
+                className={`block p-3 rounded-lg transition-colors duration-150 border ${
                   currentDocument?.id === doc.id
-                    ? "bg-blue-500 text-white border-blue-500 shadow-md"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-secondary text-foreground hover:bg-secondary/80 border-border"
                 }`}
               >
                 <p className="text-sm font-medium truncate">{doc.filename}</p>
@@ -229,29 +238,70 @@ export default function ChatPage() {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col bg-background">
+        {/* Legal Disclaimer - Persistent */}
+        <div className="bg-amber-950/30 border-b-2 border-amber-800/50 p-3 flex items-start">
+          <AlertTriangle className="w-5 h-5 text-amber-500 mr-2 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-200 leading-relaxed">
+            <strong>Legal Disclaimer:</strong> This AI advisor provides informational assistance only and does not constitute legal advice, 
+            create an attorney-client relationship, or serve as a substitute for professional legal counsel. Always consult with a qualified 
+            attorney for legal matters. The AI may make errors or omissions. Use at your own risk.
+          </p>
+        </div>
+
         {/* Chat Header */}
-        <div className="p-4 border-b border-gray-200 bg-white/80 backdrop-blur-md">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {currentDocument ? (
-              <>
-                Advisor for: <span className="text-blue-600">{currentDocument.filename}</span>
-              </>
-            ) : (
-              "Select a Document to Begin"
-            )}
-          </h3>
+        <div className="p-4 border-b border-border bg-card/50 backdrop-blur-sm">
+          {currentDocument ? (
+            <div className="flex items-center space-x-3">
+              <FileText className="w-5 h-5 text-primary" />
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  Analyzing: <span className="text-primary font-bold">{currentDocument.filename}</span>
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">Ask questions about this document below</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-3">
+              <FileText className="w-5 h-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold text-muted-foreground">Select a Document to Begin</h3>
+            </div>
+          )}
         </div>
 
         {/* Messages */}
         <div className="flex-1 p-6 overflow-y-auto space-y-4">
+          {messages.length === 0 && currentDocument && (
+            <div className="max-w-3xl mx-auto">
+              <div className="bg-card border border-border rounded-lg p-6 mb-6">
+                <div className="flex items-center mb-4">
+                  <Sparkles className="w-5 h-5 text-primary mr-2" />
+                  <h4 className="text-lg font-semibold text-foreground">Suggested Questions</h4>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Get started by asking one of these questions about <strong className="text-foreground">{currentDocument.filename}</strong>:
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {SUGGESTED_PROMPTS.map((prompt, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setInput(prompt)}
+                      className="text-left p-3 bg-secondary border border-border rounded-lg hover:bg-secondary/80 hover:border-primary/50 transition-colors text-sm text-foreground"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
           {messages.map((msg) => (
             <MessageBubble key={msg.id} message={msg} />
           ))}
           {isSending && (
             <div className="flex justify-start">
-              <div className="flex items-center p-3 rounded-2xl bg-white text-gray-800 rounded-tl-none border border-gray-200 shadow-md">
-                <Loader2 className="w-4 h-4 mr-2 animate-spin text-blue-500" />
+              <div className="flex items-center p-3 rounded-lg bg-card text-foreground rounded-tl-none border border-border">
+                <Loader2 className="w-4 h-4 mr-2 animate-spin text-primary" />
                 <p className="text-sm">AI is thinking...</p>
               </div>
             </div>
@@ -260,7 +310,7 @@ export default function ChatPage() {
         </div>
 
         {/* Input Form */}
-        <div className="p-4 border-t border-gray-200 bg-white/80 backdrop-blur-md">
+        <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm">
           <form onSubmit={handleSend} className="flex space-x-3">
             <input
               type="text"
@@ -268,12 +318,12 @@ export default function ChatPage() {
               onChange={(e) => setInput(e.target.value)}
               placeholder={currentDocument ? "Ask a question about the document..." : "Please select a document first."}
               disabled={isSending || !currentDocument}
-              className="flex-1 p-3 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 transition-colors disabled:bg-gray-100"
+              className="flex-1 p-3 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:ring-2 focus:ring-primary focus:border-primary transition-colors disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={isSending || !input.trim() || !currentDocument}
-              className="p-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed"
+              className="p-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5" />
             </button>

@@ -4,11 +4,11 @@ import { FileText, MessageSquare, User } from "lucide-react";
 export default function HomePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-100px)] text-center">
-      <div className="max-w-3xl p-8 bg-white rounded-3xl shadow-2xl card-shadow">
-        <h1 className="text-5xl font-extrabold text-gray-900 mb-4">
-          Celestius Legal AI Advisor
+      <div className="max-w-3xl p-8 bg-card rounded-lg border border-border">
+        <h1 className="text-5xl font-bold text-foreground mb-4">
+          PrimeLegal AI Advisor
         </h1>
-        <p className="text-xl text-gray-600 mb-10">
+        <p className="text-xl text-muted-foreground mb-10">
           Your personal AI assistant for instant legal document analysis and expert advice.
         </p>
 
@@ -36,12 +36,12 @@ export default function HomePage() {
           />
         </div>
 
-        <p className="text-lg text-gray-500">
+        <p className="text-lg text-muted-foreground">
           Ready to simplify your legal research?
         </p>
         <Link
           href="/register"
-          className="mt-4 inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+          className="mt-4 inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-colors duration-200"
         >
           Get Started Now
         </Link>
@@ -51,13 +51,13 @@ export default function HomePage() {
 }
 
 const FeatureCard = ({ icon: Icon, title, description, link, linkText }: any) => (
-  <div className="p-6 bg-gray-50 rounded-2xl border border-gray-200 hover:border-blue-300 transition-all duration-300">
-    <Icon className="w-10 h-10 text-blue-600 mb-4 mx-auto" />
-    <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
-    <p className="text-sm text-gray-500 mb-4">{description}</p>
+  <div className="p-6 bg-secondary rounded-lg border border-border hover:border-primary/50 transition-all duration-200">
+    <Icon className="w-10 h-10 text-primary mb-4 mx-auto" />
+    <h3 className="text-xl font-semibold text-foreground mb-2">{title}</h3>
+    <p className="text-sm text-muted-foreground mb-4">{description}</p>
     <Link
       href={link}
-      className="text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+      className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
     >
       {linkText} &rarr;
     </Link>

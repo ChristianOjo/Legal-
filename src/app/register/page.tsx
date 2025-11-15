@@ -51,28 +51,34 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-3xl shadow-2xl card-shadow">
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-full max-w-md p-8 space-y-6 bg-card rounded-lg border border-border">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Create Account</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Start your free trial with the Celestius Legal AI Advisor
+          <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Start your free trial with PrimeLegal AI Advisor
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
 
 
+          {error && (
+            <div className="p-3 text-sm text-destructive-foreground bg-destructive/20 rounded-lg border border-destructive/50">
+              {error}
+            </div>
+          )}
+
           <div>
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-foreground"
             >
               Full Name
             </label>
-            <div className="mt-1 relative rounded-xl shadow-sm">
+            <div className="mt-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-muted-foreground" />
               </div>
               <input
                 id="name"
@@ -82,23 +88,22 @@ export default function RegisterPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="appearance-none block w-full px-10 py-3 border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                className="appearance-none block w-full px-10 py-3 bg-input border border-border rounded-lg placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
                 placeholder="John Doe"
               />
             </div>
           </div>
 
-
           <div>
             <label
               htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-foreground"
             >
               Email Address
             </label>
-            <div className="mt-1 relative rounded-xl shadow-sm">
+            <div className="mt-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-muted-foreground" />
               </div>
               <input
                 id="email"
@@ -108,7 +113,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none block w-full px-10 py-3 border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                className="appearance-none block w-full px-10 py-3 bg-input border border-border rounded-lg placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
                 placeholder="you@example.com"
               />
             </div>
@@ -117,13 +122,13 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-foreground"
             >
               Password
             </label>
-            <div className="mt-1 relative rounded-xl shadow-sm">
+            <div className="mt-1 relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
+                <Lock className="h-5 w-5 text-muted-foreground" />
               </div>
               <input
                 id="password"
@@ -133,7 +138,7 @@ export default function RegisterPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none block w-full px-10 py-3 border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                className="appearance-none block w-full px-10 py-3 bg-input border border-border rounded-lg placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-colors"
                 placeholder="••••••••"
               />
             </div>
@@ -142,7 +147,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+            className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50"
           >
             {loading ? (
               <svg
@@ -175,11 +180,11 @@ export default function RegisterPage() {
         </form>
 
         <div className="text-center text-sm">
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Already have an account?{" "}
             <Link
               href="/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
+              className="font-medium text-primary hover:text-primary/80"
             >
               Sign in
             </Link>

@@ -9,36 +9,36 @@
 
 @layer base {
   :root {
-    /* Dark Theme Palette (Desaturated Gray/Blue) */
-    --background: 220 14% 10%; /* Deep Charcoal */
-    --foreground: 210 20% 98%; /* Off-White */
+    /* Minimalist Dark Theme - Inspired by manus.im */
+    --background: 222 15% 8%; /* Very dark, almost black */
+    --foreground: 210 20% 96%; /* Near white for text */
 
-    --card: 220 14% 15%; /* Slightly lighter card background */
-    --card-foreground: 210 20% 98%;
+    --card: 222 15% 12%; /* Slightly lighter than background */
+    --card-foreground: 210 20% 96%;
 
-    --popover: 220 14% 15%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 222 15% 12%;
+    --popover-foreground: 210 20% 96%;
 
-    --primary: 240 50% 60%; /* Sleek Indigo/Violet for branding */
-    --primary-foreground: 210 20% 98%;
+    --primary: 217 91% 60%; /* Clean blue accent */
+    --primary-foreground: 210 20% 96%;
 
-    --secondary: 220 14% 20%; /* Darker secondary background */
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 222 15% 14%; /* Subtle secondary */
+    --secondary-foreground: 210 20% 96%;
 
-    --muted: 220 14% 20%;
-    --muted-foreground: 215 14% 60%; /* Light gray text for muted areas */
+    --muted: 222 15% 14%;
+    --muted-foreground: 215 16% 55%; /* Softer gray for muted text */
 
-    --accent: 220 14% 20%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 222 15% 14%;
+    --accent-foreground: 210 20% 96%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 96%;
 
-    --border: 220 14% 25%; /* Subtle border color */
-    --input: 220 14% 20%;
-    --ring: 240 50% 60%;
+    --border: 222 15% 18%; /* Very subtle borders */
+    --input: 222 15% 14%;
+    --ring: 217 91% 60%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem; /* Smaller radius for cleaner look */
   }
 
   body {

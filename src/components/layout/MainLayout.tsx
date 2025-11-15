@@ -45,8 +45,7 @@ const Sidebar = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) 
     >
       <div className="flex justify-between items-center mb-8">
         <Link href="/" className="text-xl font-bold text-foreground flex items-center">
-          <span className="text-2xl font-extrabold text-primary mr-1">C</span>
-          <span className="text-foreground">elestius</span>
+          <span className="text-2xl font-extrabold text-primary">P</span><span className="text-foreground">rimeLegal</span>
         </Link>
         <button onClick={onClose} className="lg:hidden text-muted-foreground hover:text-foreground">
           <X size={24} />
@@ -168,8 +167,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             <Menu size={24} />
           </button>
           <Link href="/" className="text-xl font-bold text-foreground flex items-center">
-            <span className="text-2xl font-extrabold text-primary mr-1">C</span>
-            <span className="text-foreground">elestius</span>
+            <span className="text-2xl font-extrabold text-primary">P</span><span className="text-foreground">rimeLegal</span>
           </Link>
           {session ? (
             <button onClick={() => signOut()} className="text-red-400 hover:text-red-300">

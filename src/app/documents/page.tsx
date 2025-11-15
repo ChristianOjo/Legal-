@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import {
   UploadCloud,
@@ -32,7 +32,7 @@ const DocumentList = ({
 }) => {
   if (documents.length === 0) {
     return (
-      <div className="text-center py-12 border border-dashed border-border rounded-xl mt-8 bg-card/50 backdrop-blur-sm">
+      <div className="text-center py-12 border border-dashed border-border rounded-lg mt-8 bg-card/50 backdrop-blur-sm">
         <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground">No Documents Uploaded</h3>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -47,7 +47,7 @@ const DocumentList = ({
       {documents.map((doc) => (
         <div
           key={doc.id}
-          className="flex items-center justify-between p-4 bg-card rounded-xl border border-border card-shadow transition-all hover:shadow-md"
+          className="flex items-center justify-between p-4 bg-card rounded-lg border border-border transition-all hover:border-primary/50"
         >
           <div className="flex items-center space-x-4">
             <FileText className="w-6 h-6 text-primary" />
@@ -170,7 +170,10 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       if (response.ok) {
         setSuccess("Document uploaded and processing started!");
         setFile(null);
-        onUploadSuccess(); // Refresh document list
+        // Delay the refresh slightly to avoid immediate re-render during upload
+        setTimeout(() => {
+          onUploadSuccess(); // Refresh document list
+        }, 100);
       } else {
         const data = await response.json().catch(() => ({ error: "Upload failed" }));
         setError(data.error || "Upload failed. Please try again.");
@@ -192,7 +195,7 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-6 bg-card rounded-xl border border-border card-shadow"
+      className="p-6 bg-card rounded-lg border border-border"
     >
       <h2 className="text-xl font-semibold text-foreground mb-4">
         Upload New Document
@@ -201,7 +204,7 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       <div className="flex items-center justify-center w-full">
         <label
           htmlFor="dropzone-file"
-          className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+          className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
             file
               ? "border-primary bg-secondary"
               : "border-border hover:border-muted-foreground bg-secondary/50 hover:bg-secondary"
@@ -232,12 +235,12 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       </div>
 
       {error && (
-        <div className="mt-4 p-3 text-sm text-red-400 bg-red-900/50 rounded-xl border border-red-900">
+        <div className="mt-4 p-3 text-sm text-red-400 bg-red-900/50 rounded-lg border border-red-900">
           {error}
         </div>
       )}
       {success && (
-        <div className="mt-4 p-3 text-sm text-green-400 bg-green-900/50 rounded-xl border border-green-900">
+        <div className="mt-4 p-3 text-sm text-green-400 bg-green-900/50 rounded-lg border border-green-900">
           {success}
         </div>
       )}
@@ -245,7 +248,7 @@ const UploadForm = ({ onUploadSuccess }: { onUploadSuccess: () => void }) => {
       <button
         type="submit"
         disabled={!file || isUploading}
-        className="w-full mt-4 flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50"
+        className="w-full mt-4 flex justify-center items-center py-3 px-4 border border-transparent rounded-lg text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50"
       >
         {isUploading ? (
           <>
@@ -302,22 +305,25 @@ export default function DocumentsPage() {
     }
   }, [status, fetchDocuments]);
 
+  // Track if there are processing documents (memoized to avoid unnecessary re-renders)
+  const hasProcessingDocs = useMemo(() => {
+    return documents.some(doc => doc.status === "processing");
+  }, [documents]);
+
   // Periodic refresh only if there are documents in 'processing' state
   useEffect(() => {
-    const hasProcessingDocs = documents.some(doc => doc.status === "processing");
+    if (status !== "authenticated" || !hasProcessingDocs) return;
     
-    let interval: NodeJS.Timeout | undefined;
-    if (status === "authenticated" && hasProcessingDocs) {
-      // Set up a refresh interval to check processing status
-      interval = setInterval(fetchDocuments, 10000); // Refresh every 10 seconds
-    }
+    // Set up a refresh interval to check processing status
+    const interval = setInterval(() => {
+      fetchDocuments();
+    }, 10000); // Refresh every 10 seconds
     
     return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
+      clearInterval(interval);
     };
-  }, [status, documents, fetchDocuments]);
+    // Only depend on status and hasProcessingDocs - fetchDocuments is stable due to useCallback
+  }, [status, hasProcessingDocs, fetchDocuments]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this document?")) return;
